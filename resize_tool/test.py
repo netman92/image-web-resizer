@@ -148,3 +148,21 @@ class TestImagesResizer(unittest.TestCase):
         im = Image.open(os.path.join(self.folder, 'picture-550.jpg'))
         self.assertEqual(im.format, "JPEG")
         self.assertEqual(im.size, (480, 640))
+
+    def test_config_dict(self):
+        self.resizer.set_copyright_text("")
+        config_dict = {
+            "output_height": 480,
+            'copyright_alpha': 80,
+            'output_weight': 640,
+            'file_name_pattern_seq_start_num': 0,
+            'source_folder': self.folder,
+            'file_name_pattern': 'picture-$$.jpg',
+            'copyright_text': None,
+            'destination_folder': self.folder,
+        }
+
+        Image.new("RGB", (1080, 1960), "red").save(os.path.join(self.folder, 'vertical.jpg'))
+
+        self.resizer.set_config_by_dict(config_dict)
+        self.resizer.process_images()

@@ -95,6 +95,31 @@ class Resizer(object):
 
         self.copyright_alpha = alpha_percent
 
+    def set_config_by_dict(self, config_dict):
+        if 'source_folder' in config_dict.keys():
+            self.set_source_folder(config_dict['source_folder'])
+
+        if 'destination_folder' in config_dict.keys():
+            self.set_destination_folder(config_dict['destination_folder'])
+
+        if 'file_name_pattern' in config_dict.keys():
+            self.set_file_name_pattern(config_dict['file_name_pattern'])
+
+        if 'file_name_pattern_seq_start_num' in config_dict.keys():
+            self.set_current_seq_value(config_dict['file_name_pattern_seq_start_num'])
+
+        if 'output_weight' in config_dict.keys():
+            self.output_weight = config_dict['output_weight']
+
+        if 'output_height' in config_dict.keys():
+            self.output_height = config_dict['output_height']
+
+        if 'copyright_text' in config_dict.keys() and config_dict['copyright_text']:
+            self.set_copyright_text(config_dict['copyright_text'])
+
+        if 'copyright_alpha' in config_dict.keys():
+            self.set_copyright_alpha(config_dict['copyright_alpha'])
+
     def check_config(self):
         assert (type(self.source_folder) == str)
         assert (type(self.destination_folder) == str)
@@ -126,7 +151,10 @@ class Resizer(object):
                     Image.open(infile).save(outfile)
                     self.__filenames_to_resize += (outfile, )
                 except IOError:
-                    os.unlink(infile)
+                    try:
+                        os.unlink(infile)
+                    except:
+                        pass
             else:
                 self.__filenames_to_resize += (outfile, )
 

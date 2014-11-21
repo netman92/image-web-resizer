@@ -1,11 +1,18 @@
-import argparse
+import sys
 
-parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('integers', metavar='N', type=int, nargs='+',
-                   help='an integer for the accumulator')
-parser.add_argument('--sum', dest='accumulate', action='store_const',
-                   const=sum, default=max,
-                   help='sum the integers (default: find the max)')
+import yaml
 
-args = parser.parse_args()
-print(args.accumulate(args.integers))
+from resize_tool.resizer import Resizer
+
+
+try:
+    stream = open("config.yml", 'r')
+except FileNotFoundError:
+    print("File 'config.yml' not found")
+    sys.exit(-1)
+
+config_dict = yaml.load(stream)
+
+tool = Resizer()
+tool.set_config_by_dict(config_dict)
+tool.process_images()
