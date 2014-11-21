@@ -1,9 +1,12 @@
 import unittest
+import os
+
+from PIL import Image
 
 from resize_tool.resizer import Resizer
 
 
-class TestDefault(unittest.TestCase):
+class TestBaseConfig(unittest.TestCase):
     def test_new_filename_default_step(self):
         resizer = Resizer()
 
@@ -53,3 +56,59 @@ class TestDefault(unittest.TestCase):
         resizer.set_file_name_pattern("OBR_adasdas_$$.jpg")
 
         self.assertTrue(resizer.check_config)
+
+
+class TestImagesResizer(unittest.TestCase):
+    def rm_whole_folder(self, folder):
+        try:
+            for file in [os.path.join(folder, f) for f in os.listdir(folder)]:
+                os.unlink(file)
+            os.removedirs(folder)
+        except FileNotFoundError:
+            pass
+
+    def setUp(self):
+        folder = os.path.join(os.path.realpath('/tmp'), 'test')
+        self.rm_whole_folder(folder)
+
+        os.mkdir(folder)
+
+        self.folder = folder
+
+        resizer = Resizer()
+        resizer.set_source_folder(folder)
+        resizer.set_destination_folder(folder)
+        resizer.set_current_seq_value(550)
+        resizer.set_file_name_pattern("picture-$$.jpg")
+        resizer.set_copyright_text("Test copyright")
+        resizer.copyright_alpha = 35
+
+        self.resizer = resizer
+
+    def tearDown(self):
+        folder = os.path.join(os.path.realpath('/tmp'), 'test')
+        # self.rm_whole_folder(folder)
+
+    def test_pictures_in_folder(self):
+        with open(os.path.join(self.folder, 'img2.JpEG'), "w+"): pass
+        with open(os.path.join(self.folder, 'img.GIF'), "w+"): pass
+        with open(os.path.join(self.folder, 'img.PNG'), "w+"): pass
+        with open(os.path.join(self.folder, 'img.txt'), "w+"): pass
+
+        Image.new("RGB", (512, 512), "white").save(os.path.join(self.folder, 'real_super_image.JPG'))
+        Image.new("RGB", (512, 512), "red").save(os.path.join(self.folder, 'real_super_image2.png'))
+
+        actual = set(self.resizer.get_images_to_process())
+        expected = {"/tmp/test/real_super_image2.jpg", "/tmp/test/real_super_image.jpg"}
+        self.assertEqual(actual, expected)
+
+    def test_resize_pictures(self):
+        Image.new("RGB", (1080, 1960), "red").save(os.path.join(self.folder, 'vertical.jpg'))
+
+        self.resizer.set_current_seq_value(550)
+        self.resizer.process_images()
+
+        im = Image.open(os.path.join(self.folder, 'picture-550.jpg'))
+        self.assertEqual(im.format, "JPEG")
+        self.assertEqual(im.size, (480, 640))
+
