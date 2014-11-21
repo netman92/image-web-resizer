@@ -7,7 +7,8 @@ python:
 before_install:
   - sudo apt-get install libjpeg-dev
   - pip install -I pillow
+  - sudo pip install nose
 
 install: "pip install -r requirements.txt"
 
-script: "nosetest -v"
+script: nosetests -v --with-coverage --cover-package=resize_tool
