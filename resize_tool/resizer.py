@@ -149,19 +149,16 @@ class Resizer(object):
             filename = self.create_filename()
             new_file_path = os.path.join(self.destination_folder, filename)
 
-            try:
-                im = Image.open(infile)
-                size = (self.output_weight, self.output_height)
-                if im.size[0] <= im.size[1]:
-                    size = (self.output_height, self.output_weight)
+            im = Image.open(infile)
+            size = (self.output_weight, self.output_height)
+            if im.size[0] <= im.size[1]:
+                size = (self.output_height, self.output_weight)
 
-                new_image = im.resize(size, Image.ANTIALIAS)
-                new_image.save(new_file_path)
+            new_image = im.resize(size, Image.ANTIALIAS)
+            new_image.save(new_file_path)
 
-                del im
-                del new_image
-            except IOError:
-                print("cannot create thumbnail for", infile)
+            del im
+            del new_image
 
     def add_copyright(self):
         if not self.copyright_text or self.copyright_alpha not in range(0, 101):

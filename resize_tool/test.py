@@ -3,11 +3,7 @@ import os
 
 from PIL import Image
 
-
-try:
-    from resizer import Resizer
-except ImportError:
-    from resize_tool.resizer import Resizer
+from resize_tool.resizer import Resizer
 
 
 class TestBaseConfig(unittest.TestCase):
@@ -39,6 +35,29 @@ class TestBaseConfig(unittest.TestCase):
         self.assertRaises(ValueError, resizer.set_file_name_pattern, 123)
         self.assertRaises(ValueError, resizer.set_file_name_pattern, None)
 
+    def test_set_current_seq_value(self):
+        resizer = Resizer()
+
+        self.assertRaises(ValueError, resizer.set_current_seq_value, "test")
+
+    def test_set_current_seq_step(self):
+        resizer = Resizer()
+
+        self.assertRaises(ValueError, resizer.set_seq_step, "test")
+
+    def test_set_copyright_text(self):
+        resizer = Resizer()
+
+        self.assertRaises(ValueError, resizer.set_copyright_text, False)
+
+    def test_set_copyright_alpha(self):
+        resizer = Resizer()
+        self.assertRaises(ValueError, resizer.set_copyright_alpha, False)
+        self.assertRaises(ValueError, resizer.set_copyright_alpha, 111)
+
+        resizer.set_copyright_alpha(55)
+
+
     def test_folder(self):
         resizer = Resizer()
         resizer.set_source_folder('/tmp/')
@@ -47,6 +66,8 @@ class TestBaseConfig(unittest.TestCase):
 
         self.assertRaises(LookupError, resizer.set_destination_folder, '/var/log/')
         self.assertRaises(LookupError, resizer.set_destination_folder, '/not/existing/folder')
+
+        self.assertRaises(LookupError, resizer.set_source_folder, '/not/existing/folder')
 
     def test_checker_wrong(self):
         resizer = Resizer()
@@ -91,7 +112,7 @@ class TestImagesResizer(unittest.TestCase):
 
     def tearDown(self):
         folder = os.path.join(os.path.realpath('/tmp'), 'test')
-        # self.rm_whole_folder(folder)
+        self.rm_whole_folder(folder)
 
     def test_pictures_in_folder(self):
         with open(os.path.join(self.folder, 'img2.JpEG'), "w+"): pass
@@ -116,5 +137,14 @@ class TestImagesResizer(unittest.TestCase):
         self.assertEqual(im.format, "JPEG")
         self.assertEqual(im.size, (480, 640))
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_resize_pictures_no_copyright(self):
+        self.resizer.set_copyright_text("")
+
+        Image.new("RGB", (1080, 1960), "red").save(os.path.join(self.folder, 'vertical.jpg'))
+
+        self.resizer.set_current_seq_value(550)
+        self.resizer.process_images()
+
+        im = Image.open(os.path.join(self.folder, 'picture-550.jpg'))
+        self.assertEqual(im.format, "JPEG")
+        self.assertEqual(im.size, (480, 640))
