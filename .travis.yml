@@ -1,0 +1,13 @@
+language: python
+
+python:
+  - 3.3
+  - 3.4
+
+before_install:
+  - sudo apt-get install libjpeg-dev
+  - pip install -I pillow
+
+install: "pip install -r requirements.txt"
+
+script: "python resize_tool/test.py"

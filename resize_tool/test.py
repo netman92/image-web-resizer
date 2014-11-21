@@ -3,7 +3,11 @@ import os
 
 from PIL import Image
 
-from resize_tool.resizer import Resizer
+
+try:
+    from resizer import Resizer
+except ImportError:
+    from resize_tool.resizer import Resizer
 
 
 class TestBaseConfig(unittest.TestCase):
@@ -112,3 +116,6 @@ class TestImagesResizer(unittest.TestCase):
         self.assertEqual(im.format, "JPEG")
         self.assertEqual(im.size, (480, 640))
 
+
+if __name__ == '__main__':
+    unittest.main()
