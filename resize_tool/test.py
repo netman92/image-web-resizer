@@ -14,8 +14,6 @@ class TestBaseConfig(unittest.TestCase):
         resizer.set_file_name_pattern("OBR_adasdas_$$.jpg")
 
         self.assertEqual(resizer.create_filename(), "obr_adasdas_50.jpg")
-        self.assertEqual(resizer.create_filename(), "obr_adasdas_51.jpg")
-        self.assertEqual(resizer.create_filename(), "obr_adasdas_52.jpg")
 
     def test_new_filename_not_default_step(self):
         resizer = Resizer()
@@ -25,8 +23,6 @@ class TestBaseConfig(unittest.TestCase):
         resizer.set_seq_step(15)
 
         self.assertEqual(resizer.create_filename(), "obr_adasdas_550.jpg")
-        self.assertEqual(resizer.create_filename(), "obr_adasdas_565.jpg")
-        self.assertEqual(resizer.create_filename(), "obr_adasdas_580.jpg")
 
     def test_filename_pattern(self):
         resizer = Resizer()

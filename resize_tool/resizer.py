@@ -21,7 +21,7 @@ class Resizer(object):
         self.__current_seq_value = 0
         self.__seq_step = 1
         self.__supported_extensions = ('jpeg', 'jpg',)
-        self.__filenames_to_resize = ()
+        self.__file_names_to_resize = ()
 
     @staticmethod
     def is_folder_readable(folder):
@@ -135,8 +135,6 @@ class Resizer(object):
 
     def create_filename(self):
         current_value = self.__get_last_seq_value()
-        # todo move
-        self.__increase_seq_value()
         return self.file_name_pattern.replace("$$", str(current_value)).lower()
 
     def convert_all_source_images_to_jpg(self):
@@ -149,19 +147,19 @@ class Resizer(object):
             if infile != outfile:
                 try:
                     Image.open(infile).save(outfile)
-                    self.__filenames_to_resize += (outfile, )
+                    self.__file_names_to_resize += (outfile, )
                 except IOError:
                     try:
                         os.unlink(infile)
-                    except:
+                    except Exception:
                         pass
             else:
-                self.__filenames_to_resize += (outfile, )
+                self.__file_names_to_resize += (outfile, )
 
     def get_images_to_process(self):
         self.convert_all_source_images_to_jpg()
-
-        return self.__filenames_to_resize
+        self.__file_names_to_resize = tuple(sorted(self.__file_names_to_resize))
+        return self.__file_names_to_resize
 
     def process_images(self):
         self.check_config()
@@ -173,7 +171,7 @@ class Resizer(object):
         self.add_copyright()
 
     def resize_images(self):
-        for infile in self.__filenames_to_resize:
+        for infile in self.__file_names_to_resize:
             filename = self.create_filename()
             new_file_path = os.path.join(self.destination_folder, filename)
 
@@ -184,6 +182,8 @@ class Resizer(object):
 
             new_image = im.resize(size, Image.ANTIALIAS)
             new_image.save(new_file_path)
+
+            self.__increase_seq_value()
 
             del im
             del new_image
