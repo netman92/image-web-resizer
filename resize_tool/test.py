@@ -116,6 +116,5 @@ class TestImagesResizer(unittest.TestCase):
         self.assertEqual(im.format, "JPEG")
         self.assertEqual(im.size, (480, 640))
 
-
 if __name__ == '__main__':
     unittest.main()
