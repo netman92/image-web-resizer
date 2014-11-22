@@ -1,3 +1,4 @@
+import random
 import unittest
 import os
 
@@ -163,3 +164,47 @@ class TestImagesResizer(unittest.TestCase):
 
         self.resizer.set_config_by_dict(config_dict)
         self.resizer.process_images()
+
+
+class TestImagesResizerGeneral(unittest.TestCase):
+    def rm_whole_folder(self, folder):
+        try:
+            for file in [os.path.join(folder, f) for f in os.listdir(folder)]:
+                os.unlink(file)
+            os.removedirs(folder)
+        except FileNotFoundError:
+            pass
+
+    def setUp(self):
+        folder = os.path.join(os.path.realpath('/tmp'), 'test2')
+        self.rm_whole_folder(folder)
+
+        os.mkdir(folder)
+
+        self.folder = folder
+
+        resizer = Resizer()
+        resizer.set_source_folder(folder)
+        resizer.set_destination_folder(folder)
+        resizer.set_current_seq_value(550)
+        resizer.set_file_name_pattern("picture-$$.jpg")
+        resizer.set_copyright_text("Test copyright")
+        resizer.copyright_alpha = 35
+
+        self.resizer = resizer
+
+    def tearDown(self):
+        folder = os.path.join(os.path.realpath('/tmp'), 'test2')
+        self.rm_whole_folder(folder)
+
+    def test_main(self):
+        images_count = random.randint(5, 100)
+        for i in range(images_count):
+            colors = ['red', 'green', 'blue', 'black']
+            rand_color = colors[random.randint(0, len(colors) - 1)]
+
+            size = (random.randint(5, 2000), random.randint(5, 2000))
+            Image.new("RGB", size, rand_color).save(os.path.join(self.folder, 'INPUT-%d.jpg' % (i,)))
+
+        self.resizer.process_images()
+        self.assertEqual(self.resizer.get_count_of_processed_images(), images_count)

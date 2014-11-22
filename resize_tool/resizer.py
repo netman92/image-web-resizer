@@ -29,6 +29,7 @@ class Resizer(object):
         self.lock = threading.Lock()
         self.__threads_num = 3
         self.__processed_images = 0
+        self.__resized_images = ()
 
     @staticmethod
     def is_folder_readable(folder):
@@ -211,15 +212,14 @@ class Resizer(object):
 
         self.__increase_seq_value()
         self.__increase_processed_images()
+        self.__resized_images += (new_file_path,)
 
         del im
         del new_image
 
     def __fill_queue_with_resized_images(self):
         self.__image_queue = Queue()
-        all_files_in_folder = self.get_all_files_in_folder(self.destination_folder)
-        files_to_copyright = [os.path.join(self.destination_folder, file) for file in all_files_in_folder]
-        for item in files_to_copyright:
+        for item in self.__resized_images:
             self.__image_queue.put(item)
 
     def add_copyright_to_images(self):
