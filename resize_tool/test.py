@@ -134,6 +134,9 @@ class TestImagesResizer(unittest.TestCase):
         self.assertEqual(im.format, "JPEG")
         self.assertEqual(im.size, (480, 640))
 
+        # copyright -> not red color
+        self.assertEqual(im.getpixel((191, 320)), (253, 0, 2))
+
     def test_resize_pictures_no_copyright(self):
         self.resizer.set_copyright_text("")
 
@@ -146,6 +149,9 @@ class TestImagesResizer(unittest.TestCase):
         self.assertEqual(im.format, "JPEG")
         self.assertEqual(im.size, (480, 640))
         self.assertEqual(self.resizer.get_count_of_processed_images(), 1)
+
+        # no copyright -> red color
+        self.assertEqual(im.getpixel((191, 320)), (254, 0, 0))
 
     def test_config_dict(self):
         self.resizer.set_copyright_text("")
