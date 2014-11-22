@@ -27,7 +27,7 @@ class Resizer(object):
         self.__image_queue = Queue()
 
         self.lock = threading.Lock()
-        self.__threads_num = 5
+        self.__threads_num = 3
         self.__processed_images = 0
 
     @staticmethod
@@ -151,7 +151,7 @@ class Resizer(object):
         for infile in all_files_in_folder_abs_path:
             f, e = os.path.splitext(infile)
             outfile = f + ".jpg"
-            if infile != outfile:
+            if infile.lower() != outfile.lower():
                 try:
                     Image.open(infile).save(outfile)
                     self.__file_names_to_resize += (outfile, )
@@ -161,7 +161,7 @@ class Resizer(object):
                     except Exception:
                         pass
             else:
-                self.__file_names_to_resize += (outfile, )
+                self.__file_names_to_resize += (infile, )
 
     def __put_images_to_queue(self):
         for item in self.__file_names_to_resize:
@@ -174,15 +174,6 @@ class Resizer(object):
         self.__put_images_to_queue()
 
         return self.__file_names_to_resize
-
-    def process_images(self):
-        self.check_config()
-
-        self.get_images_to_process()
-
-        self.resize_images()
-
-        self.add_copyright_to_images()
 
     def worker(self, type_of_work):
         assert (type_of_work in ('resize', 'copyright',))
@@ -225,6 +216,7 @@ class Resizer(object):
         del new_image
 
     def __fill_queue_with_resized_images(self):
+        self.__image_queue = Queue()
         all_files_in_folder = self.get_all_files_in_folder(self.destination_folder)
         files_to_copyright = [os.path.join(self.destination_folder, file) for file in all_files_in_folder]
         for item in files_to_copyright:
@@ -250,9 +242,18 @@ class Resizer(object):
         opacity = round(255 * ((100 - self.copyright_alpha) / 100.0))
         top = round(base.size[1] / 2.0)
         half = round(base.size[0] / 2.0)
-        magic_mum = 5
-        left = half - ((magic_mum * len(str(self.copyright_text))) / 2.0)
+        font_width = 5
+        left = half - ((font_width * len(str(self.copyright_text))) / 2.0)
         position = (left, top)
         d.text(position, self.copyright_text, fill=(255, 255, 255, opacity))
         out = Image.alpha_composite(base, txt)
         out.save(infile)
+
+    def process_images(self):
+        self.check_config()
+
+        self.get_images_to_process()
+
+        self.resize_images()
+
+        self.add_copyright_to_images()

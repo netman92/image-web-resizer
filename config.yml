@@ -1,6 +1,6 @@
 #mandatory params
-source_folder: '/tmp/'
-destination_folder: '/tmp/'
+source_folder: '/tmp/foto/'
+destination_folder: '/tmp/res/'
 file_name_pattern: 'picture-$$.jpg'
 file_name_pattern_seq_start_num: 0
 
@@ -8,5 +8,5 @@ file_name_pattern_seq_start_num: 0
 output_weight: 640
 output_height: 480
 
-copyright_text:
+copyright_text: "Super sexi dovolenka"
 copyright_alpha: 80
