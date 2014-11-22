@@ -152,7 +152,7 @@ class TestImagesResizer(unittest.TestCase):
         config_dict = {
             "output_height": 480,
             'copyright_alpha': 80,
-            'output_weight': 640,
+            'output_width': 640,
             'file_name_pattern_seq_start_num': 0,
             'source_folder': self.folder,
             'file_name_pattern': 'picture-$$.jpg',

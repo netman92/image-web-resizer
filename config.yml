@@ -5,8 +5,8 @@ file_name_pattern: 'picture-$$.jpg'
 file_name_pattern_seq_start_num: 0
 
 #obligatory params
-output_weight: 640
+output_width: 640
 output_height: 480
 
-copyright_text: "Super sexi dovolenka"
+copyright_text: "test_copyright"
 copyright_alpha: 80
