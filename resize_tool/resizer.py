@@ -1,4 +1,6 @@
 import os
+import threading
+from queue import Queue
 
 from PIL import Image
 from PIL.ImageDraw import ImageDraw
@@ -22,6 +24,11 @@ class Resizer(object):
         self.__seq_step = 1
         self.__supported_extensions = ('jpeg', 'jpg',)
         self.__file_names_to_resize = ()
+        self.__image_queue = Queue()
+
+        self.lock = threading.Lock()
+        self.__threads_num = 5
+        self.__processed_images = 0
 
     @staticmethod
     def is_folder_readable(folder):
@@ -156,9 +163,16 @@ class Resizer(object):
             else:
                 self.__file_names_to_resize += (outfile, )
 
+    def __put_images_to_queue(self):
+        for item in self.__file_names_to_resize:
+            self.__image_queue.put(item)
+
     def get_images_to_process(self):
         self.convert_all_source_images_to_jpg()
         self.__file_names_to_resize = tuple(sorted(self.__file_names_to_resize))
+
+        self.__put_images_to_queue()
+
         return self.__file_names_to_resize
 
     def process_images(self):
@@ -168,49 +182,77 @@ class Resizer(object):
 
         self.resize_images()
 
-        self.add_copyright()
+        self.add_copyright_to_images()
+
+    def worker(self, type_of_work):
+        assert (type_of_work in ('resize', 'copyright',))
+        while True:
+            item = self.__image_queue.get()
+            if type_of_work == "resize":
+                self.resize_the_image(item)
+            else:
+                self.add_copyright_to_image(item)
+            self.__image_queue.task_done()
 
     def resize_images(self):
-        for infile in self.__file_names_to_resize:
-            filename = self.create_filename()
-            new_file_path = os.path.join(self.destination_folder, filename)
+        for i in range(self.__threads_num):
+            t = threading.Thread(target=self.worker, args=('resize', ))
+            t.daemon = True
+            t.start()
 
-            im = Image.open(infile)
-            size = (self.output_weight, self.output_height)
-            if im.size[0] <= im.size[1]:
-                size = (self.output_height, self.output_weight)
+        self.__image_queue.join()
 
-            new_image = im.resize(size, Image.ANTIALIAS)
-            new_image.save(new_file_path)
+    def __increase_processed_images(self):
+        self.__processed_images += 1
 
-            self.__increase_seq_value()
+    def get_count_of_processed_images(self):
+        return self.__processed_images
 
-            del im
-            del new_image
+    def resize_the_image(self, infile):
+        filename = self.create_filename()
+        new_file_path = os.path.join(self.destination_folder, filename)
+        im = Image.open(infile)
+        size = (self.output_weight, self.output_height)
+        if im.size[0] <= im.size[1]:
+            size = (self.output_height, self.output_weight)
+        new_image = im.resize(size, Image.ANTIALIAS)
+        new_image.save(new_file_path)
 
-    def add_copyright(self):
+        self.__increase_seq_value()
+        self.__increase_processed_images()
+
+        del im
+        del new_image
+
+    def __fill_queue_with_resized_images(self):
+        all_files_in_folder = self.get_all_files_in_folder(self.destination_folder)
+        files_to_copyright = [os.path.join(self.destination_folder, file) for file in all_files_in_folder]
+        for item in files_to_copyright:
+            self.__image_queue.put(item)
+
+    def add_copyright_to_images(self):
         if not self.copyright_text or self.copyright_alpha not in range(0, 101):
             return
 
-        all_files_in_folder = self.get_all_files_in_folder(self.destination_folder)
-        files_to_copyright = [os.path.join(self.destination_folder, file) for file in all_files_in_folder]
+        self.__fill_queue_with_resized_images()
 
-        for infile in files_to_copyright:
-            base = Image.open(infile).convert('RGBA')
+        for i in range(self.__threads_num):
+            t = threading.Thread(target=self.worker, args=('copyright', ))
+            t.daemon = True
+            t.start()
 
-            txt = Image.new('RGBA', base.size, (255, 255, 255, 0))
+        self.__image_queue.join()
 
-            d = ImageDraw(txt)
-
-            opacity = round(255 * ((100 - self.copyright_alpha) / 100.0))
-            top = round(base.size[1] / 2.0)
-            half = round(base.size[0] / 2.0)
-
-            magic_mum = 5
-            left = half - ((magic_mum * len(str(self.copyright_text))) / 2.0)
-            position = (left, top)
-
-            d.text(position, self.copyright_text, fill=(255, 255, 255, opacity))
-            out = Image.alpha_composite(base, txt)
-            out.save(infile)
-
+    def add_copyright_to_image(self, infile):
+        base = Image.open(infile).convert('RGBA')
+        txt = Image.new('RGBA', base.size, (255, 255, 255, 0))
+        d = ImageDraw(txt)
+        opacity = round(255 * ((100 - self.copyright_alpha) / 100.0))
+        top = round(base.size[1] / 2.0)
+        half = round(base.size[0] / 2.0)
+        magic_mum = 5
+        left = half - ((magic_mum * len(str(self.copyright_text))) / 2.0)
+        position = (left, top)
+        d.text(position, self.copyright_text, fill=(255, 255, 255, opacity))
+        out = Image.alpha_composite(base, txt)
+        out.save(infile)

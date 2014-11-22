@@ -144,6 +144,7 @@ class TestImagesResizer(unittest.TestCase):
         im = Image.open(os.path.join(self.folder, 'picture-550.jpg'))
         self.assertEqual(im.format, "JPEG")
         self.assertEqual(im.size, (480, 640))
+        self.assertEqual(self.resizer.get_count_of_processed_images(), 1)
 
     def test_config_dict(self):
         self.resizer.set_copyright_text("")
