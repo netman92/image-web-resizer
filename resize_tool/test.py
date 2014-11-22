@@ -120,7 +120,7 @@ class TestImagesResizer(unittest.TestCase):
         Image.new("RGB", (512, 512), "red").save(os.path.join(self.folder, 'real_super_image2.png'))
 
         actual = set(self.resizer.get_images_to_process())
-        expected = {"/tmp/test/real_super_image2.jpg", "/tmp/test/real_super_image.jpg"}
+        expected = {"/tmp/test/real_super_image2.jpg", "/tmp/test/real_super_image.JPG"}
         self.assertEqual(actual, expected)
 
     def test_resize_pictures(self):
